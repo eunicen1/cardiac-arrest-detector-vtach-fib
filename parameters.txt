@@ -1,0 +1,7 @@
+CUDB(1) - 8mins
+ECGIDB(0) - 20s
+VFDB(1) - 30mins
+CARDIALLY(1) - 1 min 9s 
+AFDB(0) - 10hrs 
+
+Algorithm -> BREAK into 20s + process 
