@@ -3,20 +3,21 @@ import matplotlib.pyplot as plt
 
 #Runtime below: ~O(n log n + n) = ~O(n log n)
 
-#Input: 2-d array [indexpeak, peakamp]
-#Output: 2-d array of [indexpeak, peakamp, ratiorel2Avgpeak]
 def pkRatio(arr, p=0.33):
     print("top "+str(p*100.0)+"%-peaks")
     #find mean of top p-th% peaks
     print(arr.shape)
     n,_ = arr.shape
     Δp = int(p*n)
-    arr2 = np.copy(arr[:,1])
-    arr2.sort(kind='mergesort') # sorts array in place
+    arr2 = np.array(arr[:,1])
+
+
+    arr2.sort() # sorts array in place
+
     # print(arr2, arr2[n-Δp-1:])
     avgppeak = np.mean(arr2[n-Δp-1:])
     #determine ratio of peaks
-    ratios = (100*arr[:,1]/avgppeak).reshape(n,1)
+    ratios = (100*arr[:,1]/avgppeak).reshape((n,1))
     return np.concatenate((arr, ratios), axis=1)
 
 #Input = 1-d signal array, time of collection in s
@@ -36,7 +37,7 @@ def detectPQRSTf(sig, time):
            neginds.append([i,sig[i]])
     neginds = np.array(neginds)
     if neginds.shape[0] == 0 or neginds is None:
-        return 0,0,0,0,[0,0,0]
+        return 0,0,0
     p, _ = neginds.shape
     maxs = []
     for i in range(p-1):
@@ -51,12 +52,13 @@ def detectPQRSTf(sig, time):
     maxs = np.array(maxs)
 
     if maxs.shape[0] == 0 or maxs is None:
-        return 0,0,0,0,[0,0,0]
+        return 0,0,0
 
     # all maxs and relative closeness to max
-    rmaxs = pkRatio(maxs, p=1/(n))#, p=float((maxs.shape[0])**(-1)))
+    rmaxs = pkRatio(maxs, p=1/n)#, p=float((maxs.shape[0])**(-1)))
     r, _ = rmaxs.shape
-    rmaxs = np.concatenate((rmaxs, (np.arange(r)).reshape(r,1)), axis=1)
+    arr_ = (np.array(list(range(r))))
+    rmaxs = np.concatenate((rmaxs, arr_.reshape((r,1))), axis=1)
 
     #get estimated QRS peaks
     QRS = []
@@ -110,25 +112,16 @@ def detectPQRSTf(sig, time):
 
     P = np.array(P)
     T = np.array(T)
-    farrP = 0
-    farrQRS = 0
-    farrT = 0
 
     Pamplitude = 0
     if P.shape[0] > 0:
-        Pamplitude = np.mean(P[:,0])
-        #[mean frequency of P wave, mean frequency of QRS wave, mean frequency of T wave]
-        farrP = time/np.mean(np.diff(P[:,0]))
+        Pamplitude = np.mean(P[:,1])
     QRSamplitude = 0
     if QRS.shape[0] > 0:
         QRSamplitude = np.mean(QRS[:,1])
-        #[mean frequency of P wave, mean frequency of QRS wave, mean frequency of T wave]
-        farrQRS = time/np.mean(np.diff(QRS[:,0]))
     Tamplitude = 0
     if T.shape[0] > 0:
         Tamplitude = np.mean(T[:,1])
-        #[mean frequency of P wave, mean frequency of QRS wave, mean frequency of T wave]
-        farrT = time/np.mean(np.diff(T[:,0]))
 
     # fs = [farrP, farrQRS, farrT]
     plt.plot(sig)
@@ -141,4 +134,4 @@ def detectPQRSTf(sig, time):
     plt.title("title")
     plt.show()
 
-    return Pamplitude, QRSamplitude, Tamplitude, np.mean(fs), fs
+    return Pamplitude, QRSamplitude, Tamplitude

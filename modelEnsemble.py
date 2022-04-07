@@ -18,12 +18,16 @@ from sklearn.preprocessing import MaxAbsScaler
 from time import time
 import pickle
 
+
+
 np.random.seed(457)
 
 #setup
 #START added
-df = pd.read_csv('data_aggr_4.csv', delimiter=',')
+col_names = ['P', 'QRS', 'T', "PQRS", "QRST", "freqFW", 'y', '']
+df = pd.read_csv('data_aggr_4.csv', delimiter=',', header=None, names=col_names)
 del df[df.columns[0]]
+#del df[df.columns[-1]]
 scaler = MaxAbsScaler()
 scaler.fit(df)
 scaled = scaler.transform(df)
@@ -40,12 +44,20 @@ a, b = train.shape
 c, d = valid.shape
 e, f = test.shape
 Xtrain = train[:,:-1]
-ytrain = train[:,b-1]
+ytrain = train[:,b-1].reshape(-1,1)
 Xvalid = valid[:,:-1]
 yvalid = valid[:,d-1]
 Xtest = test[:,:-1]
 ytest = test[:,f-1]
 
+print(Xtrain.shape, ytrain.shape)
+col_names = ['P', 'QRS', 'T', "PQRS", "QRST", "freqFW", 'y']
+df2 = np.concatenate((Xtrain, ytrain), axis=1)
+df2 = pd.DataFrame(df2, columns = col_names)
+col_names = ['P', 'QRS', 'T', "PQRS", "QRST", "freqFW"]
+df3 = pd.DataFrame(Xtest, columns = col_names)
+df4 = pd.DataFrame(Xvalid, columns = col_names)
+print(df2, df3)
 # kscores = []
 # for k in range(1,c):
 #     cv = KFold(n_splits=5, random_state=1, shuffle=True)
@@ -58,6 +70,8 @@ ytest = test[:,f-1]
 # kscores = np.array([kscores[i,:] for i in range(c-1) if np.isnan(kscores[i,1]) == False])
 # print(kscores)
 kscore = 3
+
+
 
 
 models = []
@@ -99,7 +113,7 @@ print("Model Accuracies", accuracies)
 ensemble = VotingClassifier(models)
 ec = ensemble.fit(Xtrain, ytrain)
 
-pickle.dump(ec, open('vftach_pred.pkl', 'wb'))
+pickle.dump(ec, open ('vfibTach.pkl','wb'))
 
 start = time()
 pred = ec.predict(Xtest)
@@ -109,9 +123,7 @@ print("Ensemble accuracy is: ", ens_acc)
 print("Ensemble f-1 score is: ", ens_f1)
 print(confusion_matrix(pred, ytest))
 print(classification_report(pred, ytest))
-
 print(ytest.shape)
-
 
 stop = time() - start
 print(str(stop) + "s")
